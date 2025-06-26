@@ -1,7 +1,7 @@
 
-# 🛒 SalesManagement API
+# 🛒 SalesManagement API UserRolePermission Nhibernate
 
-**SalesManagement** là hệ thống quản lý bán hàng xây dựng bằng **.NET 8**, hỗ trợ xác thực người dùng, phân quyền theo vai trò, bảo mật cao, ghi log hệ thống và quản lý phiên người dùng với NHibernate.
+**SalesManagement UserRolePermission Nhibernate** là hệ thống quản lý phân quyền  xây dựng bằng **.NET 8**, hỗ trợ xác thực người dùng, phân quyền theo vai trò, bảo mật cao, ghi log hệ thống và quản lý phiên người dùng với NHibernate.
 
 ---
 
@@ -106,7 +106,7 @@ sequenceDiagram
 
 ```bash
 # 1. Clone repository
-git clone https://github.com/Thuan3101/SalesManagement.git
+git clone https://github.com/Thuan3101/UserRolePermissionNhibernate.git
 cd SalesManagement
 
 # 2. Cập nhật chuỗi kết nối trong hibernate.cfg.xml
@@ -163,6 +163,6 @@ Chúng tôi luôn hoan nghênh đóng góp từ cộng đồng! ✨
 ## 📧 Liên Hệ
 
 - 📮 Email: ngominhnhut6808@gmail.com
-- 📌 Issue Tracker: Dùng tab [Issues](https://github.com/Thuan3101/SalesManagement/issues)
+- 📌 Issue Tracker: Dùng tab [Issues](https://github.com/Thuan3101/UserRolePermissionNhibernate/issues)
 
 ---
