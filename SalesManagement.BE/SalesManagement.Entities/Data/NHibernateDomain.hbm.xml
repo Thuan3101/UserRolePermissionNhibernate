@@ -1,0 +1,93 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<hibernate-mapping xmlns="urn:nhibernate-mapping-2.2" assembly="SalesManagement.Entities" namespace="SalesManagement.Entities.Data">
+	<!-- User -->
+	<class name="User" table="Users" lazy="false">
+		<id name="UserId" column="UserID" type="int">
+			<generator class="identity" />
+		</id>
+		<property name="UserCode" column="UserCode" type="string" length="20" not-null="true" unique="true" />
+		<property name="UserName" column="UserName" type="string" length="50" not-null="true" unique="true" />
+		<property name="FirstName" column="FirstName" type="string" length="50" not-null="true" />
+		<property name="LastName" column="LastName" type="string" length="50" not-null="true" />
+		<property name="Gender" column="Gender" type="string" length="10" />
+		<property name="Email" column="Email" type="string" length="100" unique="true" />
+		<property name="DateOfBirth" column="Birthdate" type="date" />
+		<property name="Phone" column="Phone" type="string" length="15" />
+		<property name="Password" column="Password" type="string" length="255" not-null="true" />
+		<property name="Status" column="Status" type="string" length="20" />
+		<property name="CreatedAt" column="CreatedAt" type="datetime" />
+		<property name="UpdatedAt" column="UpdatedAt" type="datetime" />
+		<property name="FailedLoginAttempts" column="FailedLoginAttempts" type="int" />
+		<property name="LastFailedLoginAttempt" column="LastFailedLoginAttempt" type="datetime" />
+		<bag name="UserRoles" inverse="true" cascade="all-delete-orphan">
+			<key column="UserID" />
+			<one-to-many class="UserRole" />
+		</bag>
+		<!--<bag name="RefreshTokens" inverse="true" cascade="all-delete-orphan">
+			<key column="UserId" />
+			<one-to-many class="RefreshToken" />
+		</bag>-->
+	</class>
+
+	<!-- Role -->
+	<class name="Role" table="Roles" lazy="false">
+		<id name="RoleId" column="RoleID" type="int">
+			<generator class="identity" />
+		</id>
+		<property name="RoleName" column="RoleName" type="string" length="50" not-null="true" unique="true" />
+		<property name="Description" column="Description" type="string" length="255" />
+		<bag name="UserRoles" inverse="true" cascade="all-delete-orphan">
+			<key column="RoleID" />
+			<one-to-many class="UserRole" />
+		</bag>
+		<bag name="RolePermissions" inverse="true" cascade="all-delete-orphan">
+			<key column="RoleID" />
+			<one-to-many class="RolePermission" />
+		</bag>
+	</class>
+
+	<!-- Permission -->
+	<class name="Permission" table="Permissions" lazy="false">
+		<id name="PermissionCode" column="PermissionCode" type="string" length="20">
+			<generator class="assigned" />
+		</id>
+		<property name="PermissionId" column="PermissionID" type="int" />
+		<property name="PermissionName" column="PermissionName" type="string" length="200" not-null="true" unique="true" />
+		<property name="Description" column="Description" type="string" length="255" />
+		<bag name="RolePermissions" inverse="true" cascade="all-delete-orphan">
+			<key column="PermissionCode" />
+			<one-to-many class="RolePermission" />
+		</bag>
+	</class>
+
+	<!-- UserRole -->
+	<class name="UserRole" table="UserRoles" lazy="false">
+		<composite-id>
+			<key-many-to-one name="User" class="User" column="UserID" />
+			<key-many-to-one name="Role" class="Role" column="RoleID" />
+		</composite-id>
+	</class>
+
+	<!-- RolePermission -->
+	<class name="RolePermission" table="RolePermissions" lazy="false">
+		<composite-id>
+			<key-many-to-one name="Role" class="Role" column="RoleID" />
+			<key-many-to-one name="Permission" class="Permission" column="PermissionCode" />
+		</composite-id>
+	</class>
+
+	<!-- RefreshToken -->
+	<class name="RefreshToken" table="RefreshToken" lazy="false">
+		<id name="Id" column="Id" type="int">
+			<generator class="identity" />
+		</id>
+		<many-to-one name="User" class="User" column="UserId" not-null="true" />
+		<property name="Token" column="Token" type="string" length="4000" not-null="true" />
+		<property name="JwtId" column="JwtId" type="string" length="4000" not-null="true" />
+		<property name="IsUsed" column="IsUsed" type="boolean" not-null="true" />
+		<property name="IsRevoked" column="IsRevoked" type="boolean" not-null="true" />
+		<property name="IssuedAt" column="IssuedAt" type="datetime" not-null="true" />
+		<property name="ExpiredAt" column="ExpiredAt" type="datetime" not-null="true" />
+	</class>
+
+</hibernate-mapping>
