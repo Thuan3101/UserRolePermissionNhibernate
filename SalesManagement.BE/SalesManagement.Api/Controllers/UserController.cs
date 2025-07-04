@@ -186,11 +186,16 @@ namespace SalesManagement.Api.Controllers
         //Get all users Roles permissions //UserRolePermissionsModel,UserRoleModel,RoleModel1,RolePermissionModel,PermissionModel1
         [Permission(PermissionEnum.VIEW_USERS)]
         [HttpGet("user-role-permissions")]
-        public async Task<IActionResult> GetAllUserRolePermissions(int pageSize = 10, int currentPage = 1, string? search = null)
+        public async Task<IActionResult> GetAllUserRolePermissions(
+             int pageSize = 10,
+             int currentPage = 1,
+             [FromQuery] UserRolePermissionsSearchModel? search = null
+         )
         {
             try
             {
                 var allUserRolePermissions = await _userService.GetAllUserRolePermissionsAsync(pageSize, currentPage, search);
+
                 if (allUserRolePermissions == null || !allUserRolePermissions.Any())
                 {
                     return NotFound(new ApiResponseError
@@ -201,13 +206,14 @@ namespace SalesManagement.Api.Controllers
                         Data = null
                     });
                 }
-                return Ok(new ApiResponseSuccessPaginated<List<UserRolePermissionsModel>>
+
+                return Ok(new ApiResponseSuccessPaginated<List<UserRolePermissionsSearchModel>>
                 {
                     StatusCode = StatusCodes.Status200OK,
                     Success = true,
                     Message = "User role permissions retrieved successfully.",
                     Data = allUserRolePermissions,
-                    TotalCount = allUserRolePermissions.Count, 
+                    TotalCount = allUserRolePermissions.Count,
                     PageSize = pageSize,
                     CurrentPage = currentPage
                 });
@@ -223,6 +229,7 @@ namespace SalesManagement.Api.Controllers
                 });
             }
         }
+
 
 
         [HttpPost("create")]

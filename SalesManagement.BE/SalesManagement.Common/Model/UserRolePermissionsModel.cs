@@ -30,6 +30,25 @@ namespace SalesManagement.Common.Model
 
 
     }
+    public class UserRolePermissionsSearchModel
+    {
+        public int? UserId { get; set; }
+        public string? UserCode { get; set; }
+        public string? UserName { get; set; }
+        public string? FirstName { get; set; }
+        public string? LastName { get; set; }
+        public string? Gender { get; set; }
+        public string? Email { get; set; }
+        public DateTime? DateOfBirth { get; set; }
+        public string? Phone { get; set; }
+
+        public string? Status { get; set; }
+        public DateTime? CreatedAt { get; set; }
+        public DateTime? UpdatedAt { get; set; }
+
+        public string? RoleName { get; set; } 
+        public List<string>? Permissions { get; set; } 
+    }
 
     //public class UserRoleModel
     //{

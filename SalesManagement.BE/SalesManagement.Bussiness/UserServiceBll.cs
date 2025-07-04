@@ -140,7 +140,11 @@ namespace SalesManagement.Bussiness
             }
         }
         // Get all user role permissions
-        public async Task<List<UserRolePermissionsModel>> GetAllUserRolePermissionsAsync(int pageSize, int currentPage, string? search)
+        public async Task<List<UserRolePermissionsSearchModel>> GetAllUserRolePermissionsAsync(
+            int pageSize,
+            int currentPage,
+            UserRolePermissionsSearchModel? searchModel
+        )
         {
             try
             {
@@ -149,84 +153,127 @@ namespace SalesManagement.Bussiness
                 var whereClause = new StringBuilder();
                 var parameters = new Dictionary<string, object>();
 
-                if (!string.IsNullOrEmpty(search))
+                if (searchModel != null)
                 {
-                    whereClause.Append(@"
-                        AND (
-                            u.UserCode LIKE :Search
-                            OR u.UserName LIKE :Search
-                            OR u.FirstName LIKE :Search
-                            OR u.LastName LIKE :Search
-                            OR u.Gender LIKE :Search
-                            OR u.Email LIKE :Search
-                            OR u.Phone LIKE :Search
-                            OR u.Status LIKE :Search
-                            OR r.RoleName LIKE :Search
-                            OR p.PermissionCode LIKE :Search
-                        )");
-                    parameters["Search"] = $"%{search}%";
+                    if (!string.IsNullOrEmpty(searchModel.UserCode))
+                    {
+                        whereClause.Append(" AND u.UserCode LIKE :UserCode");
+                        parameters["UserCode"] = $"%{searchModel.UserCode}%";
+                    }
+                    if (!string.IsNullOrEmpty(searchModel.UserName))
+                    {
+                        whereClause.Append(" AND u.UserName LIKE :UserName");
+                        parameters["UserName"] = $"%{searchModel.UserName}%";
+                    }
+                    if (!string.IsNullOrEmpty(searchModel.FirstName))
+                    {
+                        whereClause.Append(" AND u.FirstName LIKE :FirstName");
+                        parameters["FirstName"] = $"%{searchModel.FirstName}%";
+                    }
+                    if (!string.IsNullOrEmpty(searchModel.LastName))
+                    {
+                        whereClause.Append(" AND u.LastName LIKE :LastName");
+                        parameters["LastName"] = $"%{searchModel.LastName}%";
+                    }
+                    if (!string.IsNullOrEmpty(searchModel.Email))
+                    {
+                        whereClause.Append(" AND u.Email LIKE :Email");
+                        parameters["Email"] = $"%{searchModel.Email}%";
+                    }
+                    if (!string.IsNullOrEmpty(searchModel.Phone))
+                    {
+                        whereClause.Append(" AND u.Phone LIKE :Phone");
+                        parameters["Phone"] = $"%{searchModel.Phone}%";
+                    }
+                    if (!string.IsNullOrEmpty(searchModel.Gender))
+                    {
+                        whereClause.Append(" AND u.Gender LIKE :Gender");
+                        parameters["Gender"] = $"%{searchModel.Gender}%";
+                    }
+                    if (!string.IsNullOrEmpty(searchModel.Status))
+                    {
+                        whereClause.Append(" AND u.Status LIKE :Status");
+                        parameters["Status"] = $"%{searchModel.Status}%";
+                    }
+                    if (!string.IsNullOrEmpty(searchModel.RoleName))
+                    {
+                        whereClause.Append(" AND r.RoleName LIKE :RoleName");
+                        parameters["RoleName"] = $"%{searchModel.RoleName}%";
+                    }
+                    if (searchModel.Permissions != null && searchModel.Permissions.Any())
+                    {
+                        foreach (var permissionCode in searchModel.Permissions)
+                        {
+                            whereClause.Append(" AND p.PermissionCode LIKE :PermissionCode");
+                            parameters["PermissionCode"] = $"%{permissionCode}%";
+                        }
+                    }
+
                 }
 
-                // Query đếm tổng số bản ghi
+                // Query đếm tổng
                 var countSql = $@"
                     SELECT COUNT(DISTINCT u.UserID)
                     FROM Users u
                     LEFT JOIN UserRoles ur ON u.UserID = ur.UserID
                     LEFT JOIN Roles r ON ur.RoleID = r.RoleID
+                    LEFT JOIN RolePermissions rp ON r.RoleID = rp.RoleID
+                    LEFT JOIN Permissions p ON rp.PermissionCode = p.PermissionCode
                     WHERE 1=1 {whereClause}";
 
-                var countQuery = session.CreateSQLQuery(countSql);
-                if (!string.IsNullOrEmpty(search))
-                {
-                    countQuery.SetParameter("Search", parameters["Search"]);
-                }
-                var totalCount = await countQuery.UniqueResultAsync<int>();
+                                var countQuery = session.CreateSQLQuery(countSql);
+                                foreach (var param in parameters)
+                                {
+                                    countQuery.SetParameter(param.Key, param.Value);
+                                }
+                                var totalCount = await countQuery.UniqueResultAsync<int>();
 
-                // Query lấy thông tin users với phân trang
-                var userSql = $@"
-                        SELECT 
-                            CAST(u.UserID AS INT) as UserId,
-                            u.UserCode,
-                            u.UserName,
-                            u.FirstName,
-                            u.LastName,
-                            u.Gender,
-                            u.Email,
-                            u.Birthdate as DateOfBirth,
-                            u.Phone,
-                            
-                            u.Status,
-                            u.CreatedAt,
-                            u.UpdatedAt,
-                            r.RoleName
-                        FROM Users u
-                        LEFT JOIN UserRoles ur ON u.UserID = ur.UserID
-                        LEFT JOIN Roles r ON ur.RoleID = r.RoleID
-                        WHERE 1=1 {whereClause}
-                        ORDER BY u.UserID
-                        OFFSET :Skip ROWS
-                        FETCH NEXT :Take ROWS ONLY";
+                                // Query lấy user
+                                var userSql = $@"
+                    SELECT 
+                        CAST(u.UserID AS INT) as UserId,
+                        u.UserCode,
+                        u.UserName,
+                        u.FirstName,
+                        u.LastName,
+                        u.Gender,
+                        u.Email,
+                        u.Birthdate as DateOfBirth,
+                        u.Phone,
+                        u.Status,
+                        u.CreatedAt,
+                        u.UpdatedAt,
+                        r.RoleName
+                    FROM Users u
+                    LEFT JOIN UserRoles ur ON u.UserID = ur.UserID
+                    LEFT JOIN Roles r ON ur.RoleID = r.RoleID
+                    LEFT JOIN RolePermissions rp ON r.RoleID = rp.RoleID
+                    LEFT JOIN Permissions p ON rp.PermissionCode = p.PermissionCode
+                    WHERE 1=1 {whereClause}
+                    GROUP BY u.UserID, u.UserCode, u.UserName, u.FirstName, u.LastName, u.Gender, 
+                             u.Email, u.Birthdate, u.Phone, u.Status, u.CreatedAt, u.UpdatedAt, r.RoleName
+                    ORDER BY u.UserID
+                    OFFSET :Skip ROWS
+                    FETCH NEXT :Take ROWS ONLY";
 
                 var userQuery = session.CreateSQLQuery(userSql)
                     .SetParameter("Skip", (currentPage - 1) * pageSize)
                     .SetParameter("Take", pageSize);
 
-                if (!string.IsNullOrEmpty(search))
+                foreach (var param in parameters)
                 {
-                    userQuery.SetParameter("Search", parameters["Search"]);
+                    userQuery.SetParameter(param.Key, param.Value);
                 }
 
                 var users = await userQuery
-                    .SetResultTransformer(Transformers.AliasToBean<UserRolePermissionsModel>())
-                    .ListAsync<UserRolePermissionsModel>();
+                    .SetResultTransformer(Transformers.AliasToBean<UserRolePermissionsSearchModel>())
+                    .ListAsync<UserRolePermissionsSearchModel>();
 
-                // Explicitly cast the result to List<UserRolePermissionsModel>
-                var userList = users?.ToList() ?? new List<UserRolePermissionsModel>();
-
+                var userList = users?.ToList() ?? new List<UserRolePermissionsSearchModel>();
                 if (!userList.Any())
-                    return new List<UserRolePermissionsModel>();
+                    return new List<UserRolePermissionsSearchModel>();
 
-                // Query lấy permissions cho tất cả users
+                // Query lấy permissions
                 var permissionsSql = @"
                     SELECT 
                         u.UserCode,
@@ -243,7 +290,6 @@ namespace SalesManagement.Bussiness
                     .SetParameterList("UserCodes", userCodes)
                     .ListAsync<object[]>();
 
-                // Map permissions vào từng user
                 var permissionsMap = new Dictionary<string, List<string>>();
                 foreach (var row in permissionsResult)
                 {
@@ -259,7 +305,6 @@ namespace SalesManagement.Bussiness
                     }
                 }
 
-                // Gán permissions vào users
                 foreach (var user in userList)
                 {
                     user.Permissions = permissionsMap.GetValueOrDefault(user.UserCode, new List<string>());
@@ -273,7 +318,6 @@ namespace SalesManagement.Bussiness
                 throw;
             }
         }
-
 
         //Create a new user
         public async Task<UserRolePermissionsModel> CreateUserWithRoleAndPermissionsAsync(UserRolePermissionsModel model)
